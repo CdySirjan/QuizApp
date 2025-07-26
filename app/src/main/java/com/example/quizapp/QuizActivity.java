@@ -10,9 +10,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.quizapp.database.QuestionDAO;
 import com.example.quizapp.models.Question;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class QuizActivity extends AppCompatActivity {
@@ -39,8 +39,15 @@ public class QuizActivity extends AppCompatActivity {
         option4 = findViewById(R.id.option4);
         btnNext = findViewById(R.id.btnNext);
 
-        // Load questions - replace this with your DB or API fetch
-        questionList = getSampleQuestions();
+        // 🔥 Load questions from database (real ones)
+        QuestionDAO questionDAO = new QuestionDAO(this);
+        questionList = questionDAO.getAllQuestions();
+
+        if (questionList == null || questionList.isEmpty()) {
+            Toast.makeText(this, "No questions available.", Toast.LENGTH_LONG).show();
+            finish(); // Exit the quiz activity
+            return;
+        }
 
         loadQuestion(currentQuestionIndex);
 
@@ -59,8 +66,7 @@ public class QuizActivity extends AppCompatActivity {
             else if (selectedRadioButton == option3) selectedIndex = 3;
             else if (selectedRadioButton == option4) selectedIndex = 4;
 
-            // Check answer correctness
-            if (selectedIndex == questionList.get(currentQuestionIndex).getCorrectAnswerIndex()) {
+            if (selectedIndex == questionList.get(currentQuestionIndex).getCorrectAnswer()) {
                 score++;
             }
 
@@ -69,7 +75,6 @@ public class QuizActivity extends AppCompatActivity {
             if (currentQuestionIndex < questionList.size()) {
                 loadQuestion(currentQuestionIndex);
             } else {
-                // Quiz finished, go to result activity
                 Intent intent = new Intent(QuizActivity.this, ResultActivity.class);
                 intent.putExtra("correctAnswers", score);
                 intent.putExtra("totalQuestions", questionList.size());
@@ -94,15 +99,5 @@ public class QuizActivity extends AppCompatActivity {
         } else {
             btnNext.setText("Next");
         }
-    }
-
-    // Sample questions - replace with your real data source
-    private List<Question> getSampleQuestions() {
-        List<Question> list = new ArrayList<>();
-        list.add(new Question("What is 2+2?", "3", "4", "5", "6", 2));
-        list.add(new Question("Capital of France?", "London", "Berlin", "Paris", "Madrid", 3));
-        list.add(new Question("Which planet is closest to the Sun?", "Venus", "Earth", "Mercury", "Mars", 3));
-        // Add more questions as needed
-        return list;
     }
 }
